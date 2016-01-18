@@ -18,6 +18,12 @@ angular.module('angularStacktrace').provider('stacktrace', function() {
       return _this;
     };
   })(this);
+  this.setUuid = (function(_this) {
+    return function(uuid) {
+      _this.options.uuid = uuid;
+      return _this;
+    };
+  })(this);
   this.$get = function() {
     return {
       getOption: (function(_this) {
@@ -37,7 +43,7 @@ angular.module('angularStacktrace').provider('stacktrace', function() {
   };
 }).factory('errorLogService', ["$log", "$window", "stacktrace", "traceService", function($log, $window, stacktrace, traceService) {
   return function(exception, cause) {
-    var e, errorMessage, stackTrace, url;
+    var e, error, errorMessage, stackTrace, url;
     $log.error.apply($log, arguments);
     try {
       errorMessage = exception.toString();
@@ -53,13 +59,15 @@ angular.module('angularStacktrace').provider('stacktrace', function() {
         url: stacktrace.getOption('url'),
         contentType: "application/json",
         data: angular.toJson({
-          errorUrl: $window.location.href,
-          errorMessage: errorMessage,
-          stackTrace: stackTrace
+          message: errorMessage,
+          stacktrace: stackTrace,
+          userAgent: $window.navigator.userAgent,
+          url: $window.location.href,
+          registrationUuid: stacktrace.getOption('uuid')
         })
       });
-    } catch (_error) {
-      e = _error;
+    } catch (error) {
+      e = error;
       return $log.error(e);
     }
   };

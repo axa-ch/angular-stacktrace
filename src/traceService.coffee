@@ -15,6 +15,10 @@ angular.module('angularStacktrace').provider('stacktrace', ->
     @options.type = type
     return @
 
+  @setUuid = (uuid) =>
+    @options.uuid = uuid
+    return @
+
   @$get = ->
     {
       getOption: (key) =>
@@ -38,7 +42,7 @@ angular.module('angularStacktrace').provider('stacktrace', ->
 
     try
       errorMessage = exception.toString()
-      stackTrace = traceService.print({ e: exception })
+      stackTrace = traceService.print({e: exception})
 
       url = stacktrace.getOption('url')
       unless url then throw new Error('Cannot send exception report, please set url.')
@@ -48,9 +52,11 @@ angular.module('angularStacktrace').provider('stacktrace', ->
         url: stacktrace.getOption('url'),
         contentType: "application/json",
         data: angular.toJson({
-          errorUrl: $window.location.href,
-          errorMessage: errorMessage,
-          stackTrace: stackTrace,
+          message: errorMessage,
+          stacktrace: stackTrace,
+          userAgent: $window.navigator.userAgent,
+          url: $window.location.href,
+          registrationUuid: stacktrace.getOption('uuid'),
         })
       })
 

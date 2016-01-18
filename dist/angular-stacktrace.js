@@ -33,42 +33,45 @@ angular.module('angularStacktrace').provider('stacktrace', function() {
       })(this)
     };
   };
-}).provider('$exceptionHandler', function() {
-  this.$get = ["errorLogService", function(errorLogService) {
-    return errorLogService;
-  }];
 }).factory('traceService', function() {
   return {
     print: printStackTrace
   };
-}).factory('errorLogService', ["$log", "$window", "stacktrace", "traceService", function($log, $window, stacktrace, traceService) {
-  return function(exception, cause) {
-    var e, error, errorMessage, stackTrace, url;
-    $log.error.apply($log, arguments);
-    try {
-      errorMessage = exception.toString();
-      stackTrace = traceService.print({
-        e: exception
-      });
-      url = stacktrace.getOption('url');
-      if (!url) {
-        throw new Error('Cannot send exception report, please set url.');
+}).factory('errorLogService', ["$injector", "$log", "$window", "stacktrace", "traceService", function($injector, $log, $window, stacktrace, traceService) {
+  return function($delegate) {
+    return function(exception, cause) {
+      var e, error, errorMessage, stackTrace, url;
+      $log.error.apply($log, arguments);
+      try {
+        errorMessage = exception.toString();
+        stackTrace = traceService.print({
+          e: exception
+        });
+        url = stacktrace.getOption('url');
+        if (!url) {
+          throw new Error('Cannot send exception report, please set url.');
+        }
+        $.ajax({
+          type: stacktrace.getOption('type'),
+          url: stacktrace.getOption('url'),
+          contentType: "application/json",
+          data: angular.toJson({
+            message: errorMessage,
+            stacktrace: stackTrace,
+            userAgent: $window.navigator.userAgent,
+            url: $window.location.href,
+            registrationUuid: stacktrace.getOption('uuid')
+          })
+        });
+      } catch (error) {
+        e = error;
+        $log.error(e);
       }
-      return $.ajax({
-        type: stacktrace.getOption('type'),
-        url: stacktrace.getOption('url'),
-        contentType: "application/json",
-        data: angular.toJson({
-          message: errorMessage,
-          stacktrace: stackTrace,
-          userAgent: $window.navigator.userAgent,
-          url: $window.location.href,
-          registrationUuid: stacktrace.getOption('uuid')
-        })
-      });
-    } catch (error) {
-      e = error;
-      return $log.error(e);
-    }
+      return $delegate(exception, cause);
+    };
   };
+}]).config(["$provide", function($provide) {
+  return $provide.decorator('$exceptionHandler', ["$delegate", "errorLogService", function($delegate, errorLogService) {
+    return errorLogService($delegate);
+  }]);
 }]);

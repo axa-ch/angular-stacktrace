@@ -40,7 +40,7 @@ angular.module('angularStacktrace').provider('stacktrace', function() {
 }).factory('errorLogService', ["$injector", "$log", "$window", "stacktrace", "traceService", function($injector, $log, $window, stacktrace, traceService) {
   return function($delegate) {
     return function(exception, cause) {
-      var e, error, errorMessage, stackTrace, url;
+      var $http, errorMessage, stackTrace, url;
       $log.error.apply($log, arguments);
       try {
         errorMessage = exception.toString();
@@ -51,22 +51,23 @@ angular.module('angularStacktrace').provider('stacktrace', function() {
         if (!url) {
           throw new Error('Cannot send exception report, please set url.');
         }
-        $.ajax({
-          type: stacktrace.getOption('type'),
-          url: stacktrace.getOption('url'),
-          contentType: "application/json",
-          data: angular.toJson({
-            message: errorMessage,
-            stacktrace: stackTrace,
-            userAgent: $window.navigator.userAgent,
-            url: $window.location.href,
-            registrationUuid: stacktrace.getOption('uuid')
-          })
-        });
-      } catch (error) {
-        e = error;
-        $log.error(e);
-      }
+      } catch (undefined) {}
+      $http = $injector.get('$http');
+      $http({
+        method: stacktrace.getOption('type'),
+        url: stacktrace.getOption('url'),
+        data: angular.toJson({
+          message: errorMessage,
+          stacktrace: stackTrace,
+          userAgent: $window.navigator.userAgent,
+          url: $window.location.href,
+          registrationUuid: stacktrace.getOption('uuid')
+        })
+      }).then(function(response) {
+        return $log.info(response);
+      }, function(error) {
+        return $log.error(error);
+      });
       return $delegate(exception, cause);
     };
   };

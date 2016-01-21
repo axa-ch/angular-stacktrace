@@ -44,21 +44,26 @@ angular.module('angularStacktrace').provider('stacktrace', ->
         url = stacktrace.getOption('url')
         unless url then throw new Error('Cannot send exception report, please set url.')
 
-        $.ajax({
-          type: stacktrace.getOption('type'),
-          url: stacktrace.getOption('url'),
-          contentType: "application/json",
-          data: angular.toJson({
-            message: errorMessage,
-            stacktrace: stackTrace,
-            userAgent: $window.navigator.userAgent,
-            url: $window.location.href,
-            registrationUuid: stacktrace.getOption('uuid'),
-          })
-        })
+      $http = $injector.get('$http');
 
-      catch e
-        $log.error e
+      $http({
+        method: stacktrace.getOption('type'),
+        url: stacktrace.getOption('url'),
+        data: angular.toJson({
+          message: errorMessage,
+          stacktrace: stackTrace,
+          userAgent: $window.navigator.userAgent,
+          url: $window.location.href,
+          registrationUuid: stacktrace.getOption('uuid')
+        })
+      }).then(
+        (response) ->
+          $log.info response
+      ,
+        (error) ->
+          $log.error error
+      )
+
       $delegate(exception, cause)
 ).config(($provide) ->
   $provide.decorator('$exceptionHandler', ($delegate, errorLogService) ->

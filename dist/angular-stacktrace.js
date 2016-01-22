@@ -62,7 +62,8 @@ angular.module('angularStacktrace').provider('stacktrace', function() {
           userAgent: $window.navigator.userAgent,
           url: $window.location.href,
           registrationUuid: stacktrace.getOption('uuid')
-        })
+        }),
+        skipGlobalErrorHandler: true
       }).then(function(response) {
         return $log.info(response);
       }, function(error) {

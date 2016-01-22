@@ -55,7 +55,8 @@ angular.module('angularStacktrace').provider('stacktrace', ->
           userAgent: $window.navigator.userAgent,
           url: $window.location.href,
           registrationUuid: stacktrace.getOption('uuid')
-        })
+        }),
+        skipGlobalErrorHandler: true
       }).then(
         (response) ->
           $log.info response

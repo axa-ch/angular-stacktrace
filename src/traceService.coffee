@@ -51,7 +51,7 @@ angular.module('angularStacktrace').provider('stacktrace', ->
         url: stacktrace.getOption('url'),
         data: angular.toJson({
           message: errorMessage,
-          stacktrace: stackTrace,
+          stacktrace: JSON.stringify(stackTrace),
           userAgent: $window.navigator.userAgent,
           url: $window.location.href,
           registrationUuid: stacktrace.getOption('uuid')

@@ -1,6 +1,7 @@
 {
     "author": "Stefan Hellström",
     "name": "gulangco-plate",
+    "version": "0.0.1",
     "description": "Yupp, yet another AngularJS project boilerplate and build tool!",
     "repository": {
         "type": "git",
